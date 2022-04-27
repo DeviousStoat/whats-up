@@ -1,1 +1,11 @@
 /target
+
+# Binaries for programs and plugins
+main
+velease
+*.exe
+*.exe~
+*.so
+*.dylib
+*.dll
+vls.log
