@@ -9,3 +9,5 @@ velease
 *.dylib
 *.dll
 vls.log
+
+**/.stack-work/**

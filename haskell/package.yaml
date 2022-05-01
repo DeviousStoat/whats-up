@@ -1,0 +1,37 @@
+name:                helease
+version:             0.1.0.0
+
+dependencies:
+  - base >= 4.7 && < 5
+  - optparse-applicative
+  - process
+  - directory
+  - req
+  - text
+  - aeson
+  - async
+
+ghc-options:
+  -Wall
+  -Werror
+  -Wcompat
+  -Widentities
+  -Wincomplete-uni-patterns
+  -Wincomplete-record-updates
+  -Wno-unused-top-binds
+  -Wno-orphans
+
+default-extensions: OverloadedStrings
+
+library:
+  source-dirs: src
+
+executables:
+  helease:
+    source-dirs:      src
+    main:             Main.hs
+
+tests:
+  spec:
+    defaults: hspec/hspec@main
+    dependencies: helease
