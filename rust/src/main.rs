@@ -192,7 +192,12 @@ async fn main() -> Result<()> {
     )
     .await?;
 
-    let template = fs::read_to_string(opt.template)?;
+    let template = fs::read_to_string(&opt.template).context(format!(
+        "No template file found at {}",
+        std::env::current_dir()?
+            .join(opt.template)
+            .to_string_lossy()
+    ))?;
     let mut output = File::create(opt.output)?;
 
     let contributors = prs
