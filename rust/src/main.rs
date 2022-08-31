@@ -62,10 +62,14 @@ fn pr_to_tmpl(pr: &PullRequest, tmpl: &str) -> String {
     let mut output = tmpl.to_owned();
     let empty_string = EMPTY_PLACEHOLDER.to_owned();
     let pr_nb = pr.number.to_string();
+    let pr_url = pr
+        .url
+        .replace("api.github.com/repos/", "github.com/")
+        .replace("/pulls/", "/pull/");
 
     for kw in SUPPORTED_KEYWORDS {
         let f = match *kw {
-            "@url" => &pr.url,
+            "@url" => &pr_url,
             "@number" => &pr_nb,
             "@body" => pr.body.as_ref().unwrap_or(&empty_string),
             "@title" => pr.title.as_ref().unwrap_or(&empty_string),
