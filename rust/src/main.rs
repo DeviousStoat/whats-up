@@ -9,10 +9,18 @@ use std::{
     fs::{self, File},
     io::Write,
     path::PathBuf,
+    string::ToString,
 };
 use structopt::StructOpt;
 
-const SUPPORTED_KEYWORDS: &[&str] = &["@title", "@url", "@user_login", "@number", "@body"];
+const SUPPORTED_KEYWORDS: &[&str] = &[
+    "@title",
+    "@url",
+    "@user_login",
+    "@number",
+    "@body",
+    "@html_url",
+];
 const EMPTY_PLACEHOLDER: &str = "<NO VALUE>";
 
 #[derive(StructOpt, Debug)]
@@ -45,7 +53,7 @@ struct Opt {
     #[structopt(
         short,
         long,
-        help = "Tag from which to gather PRs [default: latest tag]",
+        help = "Tag from which to gather PRs [default: latest tag]"
     )]
     tag: Option<String>,
 
@@ -53,7 +61,7 @@ struct Opt {
         short,
         long,
         default_value = "develop",
-        help = "Branch that will be released",
+        help = "Branch that will be released"
     )]
     branch: String,
 }
@@ -63,9 +71,17 @@ fn pr_to_tmpl(pr: &PullRequest, tmpl: &str) -> String {
     let empty_string = EMPTY_PLACEHOLDER.to_owned();
     let pr_nb = pr.number.to_string();
 
+    // `url` is the api url
+    // `html_url` will return the classic url found in browser
+    let html_url = pr
+        .html_url
+        .as_ref()
+        .map_or(empty_string.clone(), ToString::to_string);
+
     for kw in SUPPORTED_KEYWORDS {
         let f = match *kw {
             "@url" => &pr.url,
+            "@html_url" => &html_url,
             "@number" => &pr_nb,
             "@body" => pr.body.as_ref().unwrap_or(&empty_string),
             "@title" => pr.title.as_ref().unwrap_or(&empty_string),
@@ -145,7 +161,7 @@ async fn main() -> Result<()> {
                 {:?}\n\n\
                 Example template:\n\
                 ```\n\
-                ## @title [@number](@url) by @user_login\n\n\
+                ## @title [@number](@html_url) by @user_login\n\n\
                 @body\n\
                 ```",
                 SUPPORTED_KEYWORDS
@@ -169,7 +185,12 @@ async fn main() -> Result<()> {
     let get_pull = github_handle.pulls(org, repo);
 
     // failing if one of the request failed as we need the whole data
-    let prs = try_join_all(pr_nbrs_from_to(&tag, &opt.branch)?.iter().map(|pr_nb| get_pull.get(*pr_nb))).await?;
+    let prs = try_join_all(
+        pr_nbrs_from_to(&tag, &opt.branch)?
+            .iter()
+            .map(|pr_nb| get_pull.get(*pr_nb)),
+    )
+    .await?;
 
     let template = fs::read_to_string(opt.template)?;
     let mut output = File::create(opt.output)?;
